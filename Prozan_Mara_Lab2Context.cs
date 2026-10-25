@@ -6,6 +6,7 @@ namespace Prozan_Mara_Lab2
 {
     public class Prozan_Mara_Lab2Context : DbContext
     {
+        public DbSet<Prozan_Mara_Lab2.Models.Category> Category { get; set; } = default!;
         public Prozan_Mara_Lab2Context(DbContextOptions<Prozan_Mara_Lab2Context> options)
             : base(options)
         {

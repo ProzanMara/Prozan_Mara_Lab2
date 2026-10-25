@@ -5,8 +5,6 @@
         public int ID { get; set; }
         public required string FirstName { get; set; }
         public required string LastName { get; set; }
-
-        // Proprietate calculată pentru a obține numele complet în dropdown/vizualizări
         public string FullName => $"{FirstName} {LastName}";
 
         public ICollection<Book>? Books { get; set; }

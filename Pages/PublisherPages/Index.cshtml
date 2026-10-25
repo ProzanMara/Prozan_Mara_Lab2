@@ -6,37 +6,60 @@
 }
 
 <h1>Index</h1>
-
-<p>
-    <a asp-page="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Publisher[0].PublisherName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Publisher[0].Books)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model.Publisher) {
-        <tr>
-            <td>
-                @Html.DisplayFor(model => item.PublisherName)
+        <p>
+         <a asp-page="Create">Create New</a>
+        </p>
+        <table class="table">
+         <thead>
+         <tr>
+         . . .
+         @Html.DisplayNameFor(model => model.Book[0].Publisher)
+         </th>
+         <th>
+         @Html.DisplayNameFor(model => model.Book[0].BookCategories)
+         </th>
+         <th></th>
+         </tr>
+         </thead>
+         <tbody>
+        @foreach (var item in Model.BookD.Books) {
+         string selectedRow = "";
+         if (item.ID == Model.BookID)
+         {
+         selectedRow = "table-success";
+         }
+         <tr class="@selectedRow">
+         <td>
+         @Html.DisplayFor(modelItem => item.Title)
+         </td>
+         <td>
+         @Html.DisplayFor(modelItem => item.Author)
+         </td>
+         <td>
+                @Html.DisplayFor(modelItem => item.Price)
             </td>
             <td>
-                @Html.DisplayFor(model => item.Books)
+                @Html.DisplayFor(modelItem => item.PublishingDate)
             </td>
             <td>
-                <a asp-page="./Edit" asp-route-id="@item.ID">Edit</a> |
+                @Html.DisplayFor(modelItem => item.Publisher.PublisherName)
+            </td>
+            <td>
+                @{
+                    foreach (var category in item.BookCategories)
+                    {
+                        @category.Category.ID
+                        @: @category.Category.CategoryName <br />
+                    }
+                }
+            </td>
+            <td>
+                <a asp-page="./Edit" asp-route-id="@item.ID">Edit</a>
                 <a asp-page="./Details" asp-route-id="@item.ID">Details</a> |
                 <a asp-page="./Delete" asp-route-id="@item.ID">Delete</a>
             </td>
         </tr>
-}
-    </tbody>
+    }
+</tbody>
 </table>
+
