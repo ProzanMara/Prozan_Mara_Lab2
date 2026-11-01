@@ -1,92 +1,105 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Prozan_Mara_Lab2.Models;
 
-
-
-namespace Prozan_Mara_Lab2.Pages.BookPages;
-
-public class EditModel : BookCategoriesPageModel
+namespace Prozan_Mara_Lab2.Pages.BookPages
 {
-    private readonly Prozan_Mara_Lab2Context _context;
-
-    public EditModel(Prozan_Mara_Lab2Context context)
+    public class EditModel : BookCategoriesPageModel
     {
-        _context = context;
-    }
+        private readonly Prozan_Mara_Lab2Context _context;
 
-    [BindProperty]
-    public Book Book { get; set; } = default!;
-
-    public async Task<IActionResult> OnGetAsync(int? id)
-    {
-        if (id == null)
+        public EditModel(Prozan_Mara_Lab2Context context)
         {
-            return NotFound();
+            _context = context;
         }
 
-        Book = await _context.Book
-            .Include(b => b.Publisher)
-            .Include(b => b.BookCategories).ThenInclude(b => b.Category)
-            .AsNoTracking()
-            .FirstOrDefaultAsync(m => m.ID == id);
+        [BindProperty]
+        public Book Book { get; set; } = default!;
 
-        if (Book == null)
+        public async Task<IActionResult> OnGetAsync(int? id)
         {
-            return NotFound();
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+           
+            Book = await _context.Book
+                .Include(b => b.Author)
+                .Include(b => b.Publisher)
+                .Include(b => b.BookCategories).ThenInclude(b => b.Category)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.ID == id);
+
+            if (Book == null)
+            {
+                return NotFound();
+            }
+
+            PopulateAssignedCategoryData(_context, Book);
+
+            var authorList = _context.Author.Select(x => new
+            {
+                x.ID,
+                FullName = x.LastName + " " + x.FirstName
+            });
+
+           
+            ViewData["AuthorID"] = new SelectList(authorList, "ID", "FullName", Book.AuthorID);
+            ViewData["PublisherID"] = new SelectList(_context.Set<Publisher>(), "ID", "PublisherName", Book.PublisherID);
+
+            return Page();
         }
 
-        PopulateAssignedCategoryData(_context, Book);
-
-        var authorList = _context.Author.Select(x => new
+        public async Task<IActionResult> OnPostAsync(int? id, string[] selectedCategories)
         {
-            x.ID,
-            FullName = x.LastName + " " + x.FirstName
-        });
-        ViewData["AuthorID"] = new SelectList(authorList, "ID", "FullName");
-        ViewData["PublisherID"] = new SelectList(_context.Set<Publisher>(), "ID", "PublisherName");
+            if (id == null)
+            {
+                return NotFound();
+            }
 
-        return Page();
-    }
+            var bookToUpdate = await _context.Book
+                .Include(i => i.Author)
+                .Include(i => i.Publisher)
+                .Include(i => i.BookCategories)
+                    .ThenInclude(i => i.Category)
+                .FirstOrDefaultAsync(s => s.ID == id);
 
-    public async Task<IActionResult> OnPostAsync(int? id, string[] selectedCategories)
-    {
-        if (id == null)
-        {
-            return NotFound();
-        }
+            if (bookToUpdate == null)
+            {
+                return NotFound();
+            }
 
-        var bookToUpdate = await _context.Book
-            .Include(i => i.Publisher)
-            .Include(i => i.BookCategories)
-            .ThenInclude(i => i.Category)
-            .FirstOrDefaultAsync(s => s.ID == id);
+          
+            if (await TryUpdateModelAsync<Book>(
+                bookToUpdate,
+                "Book",
+                i => i.Title, i => i.AuthorID,
+                i => i.Price, i => i.PublishingDate, i => i.PublisherID))
+            {
+                UpdateBookCategories(_context, selectedCategories, bookToUpdate);
+                await _context.SaveChangesAsync();
+                return RedirectToPage("./Index");
+            }
 
-        if (bookToUpdate == null)
-        {
-            return NotFound();
-        }
-
-        if (await TryUpdateModelAsync<Book>(
-            bookToUpdate,
-            "Book",
-            i => i.Title, i => i.Author,
-            i => i.Price, i => i.PublishingDate, i => i.PublisherID))
-        {
             UpdateBookCategories(_context, selectedCategories, bookToUpdate);
-            await _context.SaveChangesAsync();
-            return RedirectToPage("./Index");
+            PopulateAssignedCategoryData(_context, bookToUpdate);
+
+            var authorList = _context.Author.Select(x => new
+            {
+                x.ID,
+                FullName = x.LastName + " " + x.FirstName
+            });
+            ViewData["AuthorID"] = new SelectList(authorList, "ID", "FullName", bookToUpdate.AuthorID);
+            ViewData["PublisherID"] = new SelectList(_context.Set<Publisher>(), "ID", "PublisherName", bookToUpdate.PublisherID);
+
+            return Page();
         }
 
-        UpdateBookCategories(_context, selectedCategories, bookToUpdate);
-        PopulateAssignedCategoryData(_context, bookToUpdate);
-        return Page();
-    }
-
-    private bool BookExists(int id)
-    {
-        return _context.Book.Any(e => e.ID == id);
+        private bool BookExists(int id)
+        {
+            return _context.Book.Any(e => e.ID == id);
+        }
     }
 }

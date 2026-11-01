@@ -2,48 +2,40 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Prozan_Mara_Lab2.Models;
+using Prozan_Mara_Lab2.Models.ViewModels;
 
-namespace Prozan_Mara_Lab2.Pages.PublisherPages;
-
-public class IndexModel : PageModel
+namespace Prozan_Mara_Lab2.Pages.PublisherPages
 {
-    private readonly Prozan_Mara_Lab2Context _context;
-
-    public IndexModel(Prozan_Mara_Lab2Context context)
+    public class IndexModel : PageModel
     {
-        _context = context;
-    }
+        private readonly Prozan_Mara_Lab2Context _context;
 
-    public IList<Book> Book { get; set; }
-    public BookData BookD { get; set; }
-    public int BookID { get; set; }
-    public int CategoryID { get; set; }
-    public async Task OnGetAsync(int? id, int? categoryID)
-    {
-        BookD = new BookData();
-
-        //se va include Author conform cu sarcina de la lab 2
-        BookD.Books = await _context.Book
-        .Include(b => b.Publisher)
-        .Include(b => b.BookCategories)
-        .ThenInclude(b => b.Category)
-        .AsNoTracking()
-        .OrderBy(b => b.Title)
-        .ToListAsync();
-        if (id != null)
+        public IndexModel(Prozan_Mara_Lab2Context context)
         {
-            BookID = id.Value;
-            Book book = BookD.Books
-            .Where(i => i.ID == id.Value).Single();
-            BookD.Categories = book.BookCategories.Select(s => s.Category);
+            _context = context;
         }
-    }
 
+        public PublisherIndexData PublisherData { get; set; }
+        public int PublisherID { get; set; }
+        public int BookID { get; set; }
 
-    public IList<Publisher> Publisher { get; set; } = default!;
+        public async Task OnGetAsync(int? id, int? bookID)
+        {
+            PublisherData = new PublisherIndexData();
 
-    public async Task OnGetAsync()
-    {
-        Publisher = await _context.Set<Publisher>().ToListAsync();
+            PublisherData.Publishers = await _context.Publisher
+                .Include(i => i.Books)
+                    .ThenInclude(c => c.Author)
+                .OrderBy(i => i.PublisherName)
+                .ToListAsync();
+
+            if (id != null)
+            {
+                PublisherID = id.Value;
+                Publisher publisher = PublisherData.Publishers
+                    .Where(i => i.ID == id.Value).Single();
+                PublisherData.Books = publisher.Books;
+            }
+        }
     }
 }

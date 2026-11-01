@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Prozan_Mara_Lab2.Models;
 using Prozan_Mara_Lab2;
-
 namespace Prozan_Mara_Lab2
 {
     public class Prozan_Mara_Lab2Context : DbContext
