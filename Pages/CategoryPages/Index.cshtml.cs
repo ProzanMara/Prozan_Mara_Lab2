@@ -7,9 +7,9 @@ namespace Prozan_Mara_Lab2.Pages.CategoryPages
 {
     public class IndexModel : PageModel
     {
-        private readonly Prozan_Mara_Lab2.Data.Prozan_Mara_Lab2Context _context;
+        private readonly Prozan_Mara_Lab2.Data.Data_Context _context;
 
-        public IndexModel(Prozan_Mara_Lab2.Data.Prozan_Mara_Lab2Context context)
+        public IndexModel(Prozan_Mara_Lab2.Data.Data_Context context)
         {
             _context = context;
         }
